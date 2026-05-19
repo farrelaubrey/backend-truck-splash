@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\PengajuanPinjaman; // Pastikan Model sudah dibuat
+use App\Models\PengajuanPinjaman; 
 
 class PengajuanController extends Controller
 {
