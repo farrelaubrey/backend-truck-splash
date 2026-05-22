@@ -2,33 +2,57 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // Perbaikan dari 'use Factory'
 use Illuminate\Database\Eloquent\Model;
 
 class PengajuanPinjaman extends Model
 {
-    use HasFactory;
+    use HasFactory; // Menggunakan HasFactory yang benar
 
-    // 1. Tentukan nama tabel jika nama tabel di database Anda bukan "pengajuan_pinjamans"
-    protected $table = 'pengajuan_pinjaman'; 
+    protected $table = 'pengajuan_pinjaman';
+    protected $primaryKey = 'id_pinjaman'; // Primary key string dari rancangan 3NF 
+    public $incrementing = false;
+    protected $keyType = 'string';
 
-    // 2. Daftarkan semua kolom agar bisa diisi menggunakan metode ::create()
     protected $fillable = [
+        'id_pinjaman',
         'id_user',
         'jumlah_pinjaman',
         'tenor',
-        'bukti_ktp',
-        'bukti_aset', // Kolom tambahan baru
         'status_pengajuan',
+        
+        // 1. Identitas & Eksistensi (Langkah 2 - Form Legalitas) 
+        'bukti_ktp_diri',
+        'foto_tempat_usaha',
+        'surat_izin_usaha', // NIB/SKU 
+        
+        // 2. Dokumen Keuangan (Langkah 2) 
+        'laporan_arus_kas',
+        'pendapatan_bulanan',
+        'rekening_koran',
+        
+        // 3. Aset & Jaminan (Langkah 2 - Opsional) 
+        'foto_aset',
+        'stnk_bpkb',
+        
+        'id_admin_verifikator' // Diambil dari rancangan relasi tabel database kalian 
     ];
 
     /**
-     * Relasi ke model User.
-     * Mengasumsikan setiap pengajuan dimiliki oleh satu pengguna (User).
+     * RELASI KEBALIKAN: Pinjaman ini diajukan oleh satu User 
      */
     public function user()
     {
-        // Parameter kedua ('id_user') adalah nama foreign key di tabel pengajuan Anda
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
+    /**
+     * RELASI: Satu pengajuan pinjaman memiliki banyak tagihan cicilan (1 to Many) 
+     * Wajib ditambahkan agar data progress bar pelunasan (75% & 10%) 
+     * dan info cicilan (3/4 Bln) bisa terbaca di halaman "Pinjaman Saya".
+     */
+    public function tagihan()
+    {
+        return $this->hasMany(PembayaranTagihan::class, 'id_pinjaman', 'id_pinjaman');
     }
 }
